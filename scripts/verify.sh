@@ -51,7 +51,18 @@ else
 fi
 
 if [ $FAST -eq 0 ]; then
-  if node scripts/e2e.mjs >/tmp/mo-tong-e2e.log 2>&1; then ok "browser end-to-end (9 checks)"; else bad "browser end-to-end"; tail -14 /tmp/mo-tong-e2e.log; fi
+  python -m http.server 4178 --bind 127.0.0.1 --directory dist >/dev/null 2>&1 &
+  SRV=$!
+  for _ in $(seq 1 40); do
+    if curl -s -o /dev/null --noproxy '*' "http://127.0.0.1:4178/"; then break; fi
+    sleep 0.25
+  done
+  if BASE_URL=http://127.0.0.1:4178/ node scripts/e2e.mjs >/tmp/mo-tong-e2e.log 2>&1; then
+    ok "browser end-to-end (9 checks)"
+  else
+    bad "browser end-to-end"; tail -16 /tmp/mo-tong-e2e.log
+  fi
+  kill $SRV 2>/dev/null || true
 fi
 
 echo "-------------------------------------------------------"

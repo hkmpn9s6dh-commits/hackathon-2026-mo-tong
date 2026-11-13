@@ -53,7 +53,7 @@ const check = (name, ok, detail = '') => {
 await page.goto(base, { waitUntil: 'load' });
 await page.waitForTimeout(1400);
 await page.screenshot({ path: `${OUT}/01-title.png` });
-check('title card', (await page.locator('.card h1').innerText()) === '墨童');
+check('title screen', (await page.locator('.t-title').innerText()) === '墨童');
 
 await page.click('[data-act="start"]');
 await page.waitForTimeout(700);

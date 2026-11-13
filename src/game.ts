@@ -85,6 +85,7 @@ export class Game {
   private rafId = 0;
   autoMode = false;
   private autoT = 0;
+  private autoPath: Vec2[] = [];
   private titleT = 0;
   private demoPath: Vec2[] = catmullRom(
     [
@@ -343,6 +344,7 @@ export class Game {
     if (this.phase !== 'draw') return;
     this.autoMode = true;
     this.autoT = 0;
+    this.autoPath = humanise(this.level.solution);
     this.stroke = [{ ...this.level.start }];
     this.lastPoint = { ...this.level.start };
     this.drawStartedAt = performance.now();
@@ -402,7 +404,7 @@ export class Game {
     if (this.autoMode && this.phase === 'draw') {
       this.autoT += dt;
       const u = clamp(this.autoT / 1.4, 0, 1);
-      const target = positionAt(this.level.solution, u);
+      const target = positionAt(this.autoPath.length > 1 ? this.autoPath : this.level.solution, u);
       if (!this.lastPoint) this.lastPoint = { ...this.level.start };
       const steps = 2;
       for (let i = 0; i < steps; i++) {
@@ -502,57 +504,66 @@ export class Game {
     });
   }
 
-  /** A 册页 of every level you finished, plus the colophon. */
+  /** A landscape album leaf: every finished level as a small plate, plus the colophon. */
   private composeScroll(): HTMLCanvasElement {
-    const W = 760;
-    const H = 1080;
+    const W = 1080;
+    const H = 720;
     const c = document.createElement('canvas');
     c.width = W;
     c.height = H;
     const g = c.getContext('2d')!;
     g.drawImage(this.paper, 0, 0, LOGICAL_W, LOGICAL_H, 0, 0, W, H);
-    g.fillStyle = 'rgba(247,242,229,0.55)';
+    g.fillStyle = 'rgba(247,242,229,0.5)';
     g.fillRect(0, 0, W, H);
 
-    const cols = 2;
-    const rows = Math.ceil(this.memories.length / cols);
-    const cellW = (W - 150) / cols;
-    const cellH = Math.min(230, (H - 250) / Math.max(1, rows));
+    const cols = 4;
+    const rows = 2;
+    const gutter = 18;
+    const padX = 40;
+    const padTop = 54;
+    const colophon = 128;
+    const cellW = (W - padX * 2 - colophon - gutter * (cols - 1)) / cols;
+    const cellH = (H - padTop - 34 - gutter * (rows - 1)) / rows;
+    const scale = Math.min(cellW / LOGICAL_W, cellH / LOGICAL_H) * 0.94;
+
     this.memories.forEach((mem, i) => {
-      const cx = 40 + (i % cols) * cellW;
-      const cy = 90 + Math.floor(i / cols) * cellH;
+      const cx = padX + (i % cols) * (cellW + gutter);
+      const cy = padTop + Math.floor(i / cols) * (cellH + gutter);
       g.save();
-      g.translate(cx, cy);
       g.beginPath();
-      g.rect(0, 0, cellW - 26, cellH - 26);
+      g.rect(cx, cy, cellW, cellH);
       g.clip();
-      g.scale((cellW - 26) / LOGICAL_W, (cellH - 26) / LOGICAL_H);
-      g.globalAlpha = 0.9;
-      drawBrushPath(g, mem.stroke, { width: 9, alpha: 0.85, wet: 0.6 });
+      g.translate(cx + cellW / 2, cy + cellH / 2);
+      g.scale(scale, scale);
+      g.translate(-LOGICAL_W / 2, -LOGICAL_H / 2);
+      drawBrushPath(g, mem.stroke, { width: 12, alpha: 0.88, wet: 0.55, seed: 11 });
       for (const d of mem.level.dots) {
+        g.globalAlpha = 0.8;
         g.drawImage(this.dotSpriteSmall, d.x - 30, d.y - 30, 60, 60);
       }
       g.restore();
-      g.fillStyle = 'rgba(23,19,15,0.55)';
-      g.font = `16px "KaiTi","STKaiti",serif`;
-      g.fillText(`${mem.level.name}`, cx + cellW - 60, cy + cellH - 34);
+      g.strokeStyle = 'rgba(23,19,15,0.1)';
+      g.lineWidth = 1;
+      g.strokeRect(cx + 0.5, cy + 0.5, cellW - 1, cellH - 1);
+      g.fillStyle = 'rgba(23,19,15,0.4)';
+      g.font = `17px "KaiTi","STKaiti",serif`;
+      g.fillText(mem.level.name, cx + cellW - 44, cy + cellH - 12);
     });
 
-    // colophon on the right
+    // colophon on the right edge
     g.save();
-    g.translate(W - 66, 120);
+    g.translate(W - 92, 64);
     g.fillStyle = 'rgba(23,19,15,0.8)';
-    g.font = `26px "KaiTi","STKaiti",serif`;
-    const title = '墨童';
-    [...title].forEach((ch, i) => g.fillText(ch, 0, i * 34));
-    g.font = `13px "Songti SC","SimSun",serif`;
-    g.fillStyle = 'rgba(23,19,15,0.55)';
+    g.font = `30px "KaiTi","STKaiti",serif`;
+    ['墨', '童'].forEach((ch, i) => g.fillText(ch, 0, i * 38));
+    g.font = `12px "Songti SC","SimSun",serif`;
+    g.fillStyle = 'rgba(23,19,15,0.5)';
     const now = new Date();
     const stamp = `${now.getFullYear()}.${String(now.getMonth() + 1).padStart(2, '0')}.${String(now.getDate()).padStart(2, '0')}`;
-    [...stamp].forEach((ch, i) => g.fillText(ch, 2, 120 + i * 15));
+    [...stamp].forEach((ch, i) => g.fillText(ch, 4, 120 + i * 14));
     g.restore();
 
-    g.drawImage(this.sealSprite, W - 108, H - 150, 84, 84);
+    g.drawImage(this.sealSprite, W - 122, H - 128, 72, 72);
     return c;
   }
 
@@ -657,7 +668,7 @@ export class Game {
       const pts = this.shadow.path.slice(0, Math.max(2, Math.ceil(this.shadow.path.length * this.shadowDrawing)));
       ctx.save();
       ctx.globalAlpha = this.phase === 'shadow' ? 0.5 : 0.2;
-      drawBrushPath(ctx, pts, { color: '#4a4038', width: 5.5, alpha: 0.7, wet: 0.2, seed: 7 });
+      drawBrushPath(ctx, pts, { color: '#54483d', width: 6.2, alpha: 0.55, wet: 0.25, seed: 7 });
       ctx.restore();
     }
 
@@ -883,6 +894,19 @@ export function positionAt(path: readonly Vec2[], u: number): Vec2 {
     target -= seg;
   }
   return { ...path[path.length - 1] };
+}
+
+/** A slightly wobbly copy of the reference route, so the demo reads as a hand, not a machine. */
+function humanise(path: readonly Vec2[]): Vec2[] {
+  return path.map((p, i) => {
+    const prev = path[Math.max(0, i - 1)];
+    const next = path[Math.min(path.length - 1, i + 1)];
+    const len = Math.max(1, Math.hypot(next.x - prev.x, next.y - prev.y));
+    const nx = -(next.y - prev.y) / len;
+    const ny = (next.x - prev.x) / len;
+    const wobble = Math.sin(i * 0.21) * 2.6 + Math.sin(i * 0.07) * 3.4;
+    return { x: p.x + nx * wobble, y: p.y + ny * wobble };
+  });
 }
 
 function pathLength(path: readonly Vec2[]): number {

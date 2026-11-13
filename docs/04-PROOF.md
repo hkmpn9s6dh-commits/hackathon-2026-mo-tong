@@ -1,0 +1,67 @@
+# 04 — PROOF：它真的能用
+
+> 闸 C 的证据页。每条验收条件配一条命令或一份证据；任何人都能照着重跑。
+
+## 1. 全新 clone（闸 C 硬门槛）
+
+见 `proof/clone-check.md`：从 GitHub 拉一份全新副本，只照 README 跑 `npm ci && bash scripts/verify.sh`，全部通过。记录时间与输出原文。
+
+## 2. 命令证据
+
+| 条件 | 命令 | 最近一次结果 |
+|---|---|---|
+| AC-1/3/4 关卡可解、墨渍不压路线、种子可复现 | `npx vitest run` | 23 passed |
+| AC-2/5 阻挡与完成判定 | 同上 | 23 passed |
+| AC-6/7 学习模型与墨影 | 同上 | 23 passed |
+| AC-8 构建与相对路径 | `bash scripts/verify.sh` | all checks passed |
+| AC-9/10/11 浏览器全流程、无 console 错误、414px | `node scripts/e2e.mjs` | 10 checks passed |
+| AC-12 创空间静态 | `ms_deploy.json` + 根 `index.html` | 见 §4 |
+| AC-13 无密钥 | `verify.sh` 的 `no api keys committed` | PASS |
+
+单元检查的原文（2026-11-13）：
+
+```
+ ✓ test/core.test.ts (23 tests) 799ms
+   Test Files  1 passed (1)
+        Tests  23 passed (23)
+```
+
+浏览器端到端的原文（2026-11-13，本地生产构建）：
+
+```
+PASS  title screen
+PASS  starts on level 1 in draw phase
+PASS  level 1 completes
+PASS  shadow takes at least one dot before the player draws
+PASS  shadow never takes more than 40 % of the dots
+PASS  shadow level still solvable with the reference route
+PASS  final level reaches a result card
+PASS  finale composes a scroll
+PASS  no horizontal overflow at 414px
+PASS  no console errors
+```
+
+## 3. 截图
+
+- `proof/shots/01-title.png` 标题页
+- `proof/shots/02-drawing.png` 落笔与行走
+- `proof/shots/03-result.png` 结算纸片
+- `proof/shots/04-shadow-level.png` 墨影先走
+- `proof/shots/05-finale.png` 收卷册页
+- `proof/shots/06-mobile.png` 414px 竖屏
+
+（`node scripts/shots.mjs` 可一键重出。）
+
+## 4. 线上与创空间
+
+- GitHub Pages：https://hkmpn9s6dh-commits.github.io/hackathon-2026-mo-tong/
+- 创空间：**待用户部署**（步骤见 `06-SUBMIT-STEPS.md`）。静态托管要求根目录 `index.html` + `assets/`，本仓库 `ms_deploy.json` 已按 `sdk_type: static` 写好。
+- 部署后的冒烟：`node scripts/e2e.mjs` 把 `BASE_URL` 指到创空间地址，10 项应全过。
+
+## 5. 已知边界（如实写在前面）
+
+1. **墨影是「学风格」，不是「学策略」**：它估计的是五个连续参数（绕远/贴边/贪近/摆幅/行笔），不是逐帧模仿动作。所以它复现的是「你走路的脾气」，不是「你在这一格会怎么点」。
+2. **抢点上限定死 40%**：`planShadow` 里有一行 `Math.floor(dots * 0.4)`。这是为了保证关卡一定可通；如果放开，习性强的人会把关卡抢成死局。
+3. **没有本地存档**：「再来一局」清空全部习性。评委每次刷新都是同一个起点，这是刻意的。
+4. **没有接任何云端模型**：本机到 Google/OpenAI 的接口不可达（见 `00-BRIEF.md` 的环境实测表），且接云端会让「点开就能玩」不成立。
+5. **字体依赖系统**：`KaiTi` 缺失时回落衬线体，字形会变，但不影响可读性。

@@ -1,0 +1,7 @@
+A: sky
+B: cocoon
+C: monument
+D: gris
+E: sojourner
+F: ours
+G: okami

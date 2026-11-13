@@ -235,17 +235,17 @@ export function makeHazardSprite(r: number, seed: number): HTMLCanvasElement {
 
   // the pour: one main mass, a few lobes, a couple of satellite specks
   const blobs: Array<{ x: number; y: number; r: number; a: number }> = [];
-  blobs.push({ x: cx, y: cy, r: r * 0.92, a: 0.9 });
+  blobs.push({ x: cx, y: cy, r: r * 0.92, a: 0.84 });
   const lobes = 3 + Math.floor(rng() * 3);
   for (let l = 0; l < lobes; l++) {
     const ang = rng() * Math.PI * 2;
     const d = r * (0.3 + rng() * 0.62);
-    blobs.push({ x: cx + Math.cos(ang) * d, y: cy + Math.sin(ang) * d, r: r * (0.32 + rng() * 0.42), a: 0.82 });
+    blobs.push({ x: cx + Math.cos(ang) * d, y: cy + Math.sin(ang) * d, r: r * (0.32 + rng() * 0.42), a: 0.76 });
   }
   for (let l = 0; l < 4; l++) {
     const ang = rng() * Math.PI * 2;
     const d = r * (0.95 + rng() * 0.5);
-    blobs.push({ x: cx + Math.cos(ang) * d, y: cy + Math.sin(ang) * d, r: r * (0.06 + rng() * 0.1), a: 0.7 });
+    blobs.push({ x: cx + Math.cos(ang) * d, y: cy + Math.sin(ang) * d, r: r * (0.03 + rng() * 0.05), a: 0.5 });
   }
 
   for (const b of blobs) {

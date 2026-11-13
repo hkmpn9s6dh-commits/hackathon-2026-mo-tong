@@ -1,5 +1,6 @@
 import {
   approxTourLength,
+  catmullRom,
   clamp,
   dist,
   lerpVec,
@@ -136,7 +137,7 @@ export function planShadow(level: Level, style: Style, seedSalt = 0): ShadowPlan
     const order = nearestNeighbourOrder(level.start, level.dots);
     const keep = Math.max(2, Math.round(order.length * clamp(style.greedy, 0, 1)));
     const ctrl: Vec2[] = [level.start, ...order.slice(0, keep).map((i) => level.dots[i]), level.goal];
-    base = resample(ctrl, 6);
+    base = catmullRom(ctrl, 5);
   }
 
   // 2. detour: one broad bulge, proportional to how much the player wanders

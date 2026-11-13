@@ -59,12 +59,17 @@ function insideBoard(p: Vec2, pad = 0): boolean {
 function buildControlPoints(rng: Rng, start: Vec2, goal: Vec2, dotCount: number, wiggleAmp: number): Vec2[] {
   const ctrl: Vec2[] = [{ ...start }];
   const steps = dotCount + 1;
+  // one smooth undulation (sometimes two) instead of per-point randomness:
+  // the reference route should read as a brush line, not as a scribble.
+  const waves = 1 + Math.floor(rng() * 2);
+  const phase = rng() * Math.PI * 2;
   for (let i = 1; i <= steps; i++) {
     const t = i / (steps + 1);
     const base = lerpVec(start, goal, t);
-    const lateral = Math.sin(t * Math.PI) * wiggleAmp * (rng() * 2 - 1);
+    const taper = Math.sin(t * Math.PI);
+    const lateral = Math.sin(t * Math.PI * waves + phase) * wiggleAmp * taper;
     let p = { x: base.x, y: base.y + lateral };
-    if (!insideBoard(p, 40)) p = { x: base.x, y: lerp(start.y, goal.y, t) };
+    if (!insideBoard(p, 46)) p = { x: base.x, y: lerp(start.y, goal.y, t) };
     ctrl.push(p);
   }
   ctrl.push({ ...goal });
@@ -156,7 +161,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     hazards: 2,
     seed: 'mo-tong-1',
     budgetFactor: 1.55,
-    wiggleAmp: 70,
+    wiggleAmp: 62,
   },
   {
     id: 2,
@@ -167,7 +172,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     hazards: 4,
     seed: 'mo-tong-2',
     budgetFactor: 1.42,
-    wiggleAmp: 110,
+    wiggleAmp: 82,
   },
   {
     id: 3,
@@ -178,7 +183,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     hazards: 6,
     seed: 'mo-tong-3',
     budgetFactor: 1.36,
-    wiggleAmp: 140,
+    wiggleAmp: 96,
   },
   {
     id: 4,
@@ -190,7 +195,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     shadow: true,
     seed: 'mo-tong-4',
     budgetFactor: 1.34,
-    wiggleAmp: 150,
+    wiggleAmp: 104,
   },
   {
     id: 5,
@@ -202,7 +207,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     shadow: true,
     seed: 'mo-tong-5',
     budgetFactor: 1.3,
-    wiggleAmp: 165,
+    wiggleAmp: 112,
   },
   {
     id: 6,
@@ -214,7 +219,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     shadow: true,
     seed: 'mo-tong-6',
     budgetFactor: 1.24,
-    wiggleAmp: 180,
+    wiggleAmp: 120,
   },
   {
     id: 7,
@@ -226,7 +231,7 @@ export const LEVEL_PLAN: LevelOptions[] = [
     shadow: true,
     seed: 'mo-tong-7',
     budgetFactor: 1.2,
-    wiggleAmp: 190,
+    wiggleAmp: 126,
   },
 ];
 

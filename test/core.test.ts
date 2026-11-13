@@ -9,7 +9,7 @@ import {
   sampleAlong,
   type Vec2,
 } from '../src/core/geom';
-import { buildAllLevels, buildLevel, DOT_R, LEVEL_PLAN, type Level } from '../src/core/levels';
+import { buildAllLevels, buildLevel, DOT_R, LEVEL_PLAN } from '../src/core/levels';
 import { blendStyle, extractStyle, NEUTRAL_STYLE, planShadow } from '../src/core/learn';
 import { blockedByHazard, evaluateStroke, scoreLevel } from '../src/core/stroke';
 
@@ -21,11 +21,6 @@ const wiggle = (n = 120, len = 600, amp = 40): Vec2[] =>
     const t = i / n;
     return { x: 100 + len * t, y: 300 + Math.sin(t * Math.PI * 8) * amp };
   });
-
-function solves(level: Level, path: Vec2[]): boolean {
-  const r = evaluateStroke(path, level, new Set());
-  return r.complete;
-}
 
 describe('geometry', () => {
   it('measures a polyline', () => {
