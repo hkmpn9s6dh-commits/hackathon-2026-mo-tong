@@ -4,3 +4,6 @@ dist/
 proof/rank/*/tmp/
 *.log
 .DS_Store
+video/raw.webm
+video/tmp/
+video/frames/
