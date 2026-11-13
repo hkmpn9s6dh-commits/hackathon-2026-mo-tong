@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.vite/
+proof/rank/*/tmp/
+*.log
+.DS_Store
