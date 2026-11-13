@@ -1,3 +1,4 @@
+import './fonts/wenkai.css';
 import './styles.css';
 import { Game } from './game';
 import { watchForUpdates } from './update-check';
@@ -17,6 +18,7 @@ declare global {
       jump: (i: number) => void;
       start: () => void;
       next: () => void;
+      events: () => Array<{ t: number; kind: string; n?: number }>;
       game: Game;
     };
   }
@@ -26,6 +28,7 @@ window.__moTong = {
   snapshot: () => game.snapshot(),
   solve: () => game.solveForTest(),
   jump: (i: number) => game.jumpTo(i),
+  events: () => game.takeEvents(),
   start: () => {
     const btn = document.querySelector<HTMLButtonElement>('[data-act="start"]');
     btn?.click();

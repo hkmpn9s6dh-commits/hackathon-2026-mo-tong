@@ -166,6 +166,7 @@ export class Game {
       if (this.phase !== 'draw') return;
       const p = this.toLogical(e.clientX, e.clientY);
       this.sound.ensure();
+      this.beat('draw-start');
       this.canvas.setPointerCapture(e.pointerId);
       this.drawing = true;
       this.autoMode = false;
@@ -192,6 +193,7 @@ export class Game {
     const up = () => {
       if (!this.drawing) return;
       this.drawing = false;
+      this.beat('draw-end');
       this.sound.brushOff();
       this.finishStroke();
     };
@@ -272,6 +274,7 @@ export class Game {
     this.pendingDrawMs = drawMs;
     this.taken = new Set();
     this.phase = 'walk';
+    this.beat('walk', path.length);
     this.ui.setPhase('walk');
     this.ui.setHint('墨童上路了。');
   }
@@ -334,6 +337,7 @@ export class Game {
       this.phase = 'shadow';
       this.ui.setPhase('shadow');
       this.sound.airy();
+      this.beat('shadow');
     } else {
       this.shadow = null;
       this.phase = 'draw';
@@ -410,6 +414,7 @@ export class Game {
           this.taken.add(d.id);
           this.burst(d.x, d.y, CINNABAR, 18);
           this.sound.pluck(this.taken.size - 1);
+          this.beat('dot', this.taken.size - 1);
         }
       }
       if (this.walkT >= 1) {
@@ -450,6 +455,7 @@ export class Game {
         this.claimed.add(id);
         this.burst(dot.x, dot.y, '#3a332c', 10);
         this.sound.shadowNote(this.claimed.size - 1);
+        this.beat('shadowdot', this.claimed.size - 1);
       }
     }
   }
@@ -464,6 +470,7 @@ export class Game {
     this.ui.setHint('');
     this.ui.syncHud(this);
     this.sound.seal();
+    this.beat('seal');
     this.burst(this.level.goal.x, this.level.goal.y, '#bb9647', 22);
 
     const pts = scoreLevel(result, this.level, this.claimed.size);
@@ -478,7 +485,9 @@ export class Game {
         <div><b>${Math.round((result.length / this.level.inkBudget) * 100)}%</b><span>用墨</span></div>
         <div><b>${pts}</b><span>这一笔</span></div>
       </div>
-      <p class="learned">墨影学会了 ${traits.map((t) => `<em>${t.word}</em>`).join(' 与 ')}</p>
+      <p class="learned"><span class="learned-label">墨影学到</span>${traits
+        .map((t) => `<span class="trait"><b>${t.label}</b>${t.word}</span>`)
+        .join('<i class="sep"></i>')}</p>
       <button class="seal-btn" type="button" data-act="${last ? 'finale' : 'next'}">${last ? '收 卷' : '下 一 关'}</button>
     `);
     this.ui.bindCardAction('next', () => this.startLevel(this.levelIndex + 1));
@@ -489,6 +498,7 @@ export class Game {
     this.phase = 'finale';
     this.ui.setPhase('finale');
     this.sound.finish();
+    this.beat('finale');
     const traits = loudestTraits(this.style, 3);
     const line = traits.map((t) => t.word).join(' · ');
     const canvas = this.composeScroll();
@@ -877,6 +887,13 @@ export class Game {
   private ghost: { points: Vec2[]; alpha: number } | null = null;
   private toast: { text: string; until: number } | null = null;
   private cursorKind = '';
+  /** timestamped beats the soundtrack is written against (see scripts/score.mjs) */
+  events: Array<{ t: number; kind: string; n?: number }> = [];
+
+  private beat(kind: string, n?: number): void {
+    this.events.push({ t: Math.round(performance.now()), kind, n });
+    if (this.events.length > 400) this.events.shift();
+  }
 
   private flash(msg: string): void {
     this.hintFlash = msg;
@@ -902,6 +919,10 @@ export class Game {
   }
 
   // ---------------------------------------------------------------- test hooks
+
+  takeEvents(): Array<{ t: number; kind: string; n?: number }> {
+    return this.events.slice();
+  }
 
   snapshot() {
     return {

@@ -78,14 +78,11 @@ export class UI {
     this.habitEmpty.style.display = learned ? 'none' : '';
     this.habitList.innerHTML = learned
       ? traits
-          .map(
-            (t) => `
-          <li>
-            <span class="h-label">${t.label}</span>
-            <span class="habit-bar"><i style="width:${Math.round(clamp(t.value, 0.04, 1) * 100)}%"></i></span>
-            <span class="habit-word">${t.word}</span>
-          </li>`,
-          )
+          .map((t) => {
+            const v = clamp(t.value, 0, 1);
+            const dots = v > 0.66 ? '●●●' : v > 0.33 ? '●●○' : '●○○';
+            return `<li><b class="h-label">${t.label}</b><span class="h-mark">${dots}</span><span class="h-word">${t.word}</span></li>`;
+          })
           .join('')
       : '';
   }

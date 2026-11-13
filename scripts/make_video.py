@@ -80,10 +80,18 @@ def main() -> None:
         last = out
 
     ffmpeg = os.environ.get("FFMPEG", "ffmpeg")
-    cmd = [
-        ffmpeg, "-y", *inputs,
-        "-filter_complex", ";".join(filters),
-        "-map", "[vout]",
+    audio = Path("video/score.wav")
+    cmd = [ffmpeg, "-y", *inputs]
+    if audio.exists():
+        cmd += ["-i", str(audio)]
+    cmd += ["-filter_complex", ";".join(filters), "-map", "[vout]"]
+    if audio.exists():
+        cmd += [
+            "-map", f"{len(CAPTIONS) + 1}:a",
+            "-af", "loudnorm=I=-16:TP=-1.5:LRA=11", "-ar", "48000",
+            "-c:a", "aac", "-b:a", "160k", "-shortest",
+        ]
+    cmd += [
         "-c:v", "libx264", "-preset", "slow", "-crf", "20",
         "-pix_fmt", "yuv420p", "-movflags", "+faststart",
         str(dst),

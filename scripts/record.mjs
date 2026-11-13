@@ -4,7 +4,7 @@
  * Writes video/raw.webm at 1280x720. Subtitles are burnt in by scripts/make-video.sh.
  */
 import { chromium } from 'playwright-core';
-import { mkdirSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, rmSync, existsSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import path from 'node:path';
 
@@ -97,6 +97,13 @@ mark('end');
 
 const s = await snap();
 console.log('final snapshot', JSON.stringify(s));
+
+// the beat sheet the soundtrack is written against
+const recStart = await page.evaluate(() => window.__recStart ?? 0);
+const events = await page.evaluate(() => window.__moTong.events());
+const timeline = events.map((e) => ({ t: +( (e.t - recStart) / 1000 ).toFixed(3), kind: e.kind, n: e.n }));
+writeFileSync('video/timeline.json', JSON.stringify(timeline, null, 1));
+console.log('events', timeline.length, 'span', timeline.at(-1)?.t);
 await context.close();
 await browser.close();
 
