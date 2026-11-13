@@ -4,7 +4,7 @@
 
 ## 1. 全新 clone（闸 C 硬门槛）
 
-见 `proof/clone-check.md`：从 GitHub 拉一份全新副本，只照 README 跑 `npm ci && bash scripts/verify.sh`，全部通过。记录时间与输出原文。
+见 `proof/clone-check.md`：从 GitHub 拉一份全新副本，只照 README 跑 `npm ci && bash scripts/verify.sh`，17 项全部通过（输出原文在文件里）。
 
 ## 2. 命令证据
 
@@ -56,7 +56,8 @@ PASS  no console errors
 
 - GitHub Pages：https://hkmpn9s6dh-commits.github.io/hackathon-2026-mo-tong/
 - 创空间：**待用户部署**（步骤见 `06-SUBMIT-STEPS.md`）。静态托管要求根目录 `index.html` + `assets/`，本仓库 `ms_deploy.json` 已按 `sdk_type: static` 写好。
-- 部署后的冒烟：`node scripts/e2e.mjs` 把 `BASE_URL` 指到创空间地址，10 项应全过。
+- 线上实测：对 Pages 地址跑 `BASE_URL=https://hkmpn9s6dh-commits.github.io/hackathon-2026-mo-tong/ node scripts/e2e.mjs`，10 项全过（2026-11-13）。
+- 创空间部署后的冒烟：把 `BASE_URL` 指到创空间地址，同一套 10 项应全过。
 
 ## 5. 已知边界（如实写在前面）
 
@@ -65,3 +66,5 @@ PASS  no console errors
 3. **没有本地存档**：「再来一局」清空全部习性。评委每次刷新都是同一个起点，这是刻意的。
 4. **没有接任何云端模型**：本机到 Google/OpenAI 的接口不可达（见 `00-BRIEF.md` 的环境实测表），且接云端会让「点开就能玩」不成立。
 5. **字体依赖系统**：`KaiTi` 缺失时回落衬线体，字形会变，但不影响可读性。
+6. **竖屏手机上「收卷」偏小**：1080×720 的册页在 414px 宽下只有约 320px，七格里能看清笔迹、看不清关名。建议横屏或桌面看；这是取舍——竖屏优先保证按钮和正文可用。
+7. **盲排的两位评委只有档位差**：一位 reasoning 档、一位 lite 档，底层模型家族无法从运行记录核实，按「两位独立、非作者」记录，已在 `proof/rank/RESULTS.md` 标注为下一场要补的弱点。
