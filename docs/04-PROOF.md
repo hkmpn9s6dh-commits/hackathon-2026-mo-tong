@@ -67,6 +67,12 @@ PASS  no console errors
 1. **首页鼠标几乎看不见**：`#stage { cursor: none }` 把系统指针整屏藏了，只有按钮上能偶然露出原生指针。改为：`default` / 落笔时 `crosshair`，画布内的笔尖圆环改成按逻辑坐标绘制（原来用的是 CSS 像素，位置是错的）。回归：`system cursor is never hidden`、`brush cursor in the play phase`。
 2. **第一关怎么拖都拖不动**：起笔点必须在墨童 64px 内，否则**一点墨都不出**；即使起笔成功，一笔不完整就静默清空。改为：**纸上任意位置按下都从墨童起笔**（连向指针的那一段照旧受墨渍阻挡），被挡时给明确提示；放弃的笔画以淡墨淡出而不是瞬间消失；失败原因用画布顶部的大字提示（原来是 16px 小字，容易被忽略）。回归：`a press far from the child still draws ink`、`tracing the route with a real mouse completes level 1`。
 
+## 4.6 零操作更新
+
+`src/update-check.ts` + `vite.config.ts` 的 `build-stamp`：每次构建在 `index.html` 里写一枚 `app-version` 戳；页面载入后 1.5 秒、每分钟、以及切回标签页/窗口聚焦时，用 `fetch(index.html, {cache:'no-store'})` 比对，发现新构建就自己带 `?v=<新戳>` 重载一次。同一个目标版本只重载一次（`sessionStorage` 记目标版本，幂等去重，不是次数上限），新版本永远放行。
+
+实测（2026-11-13）：本地把 `index.html` 的戳改成新值 → 页面在 2.5 秒内自己跳到 `?v=...` 并显示新构建；再次触发检查不再重载（无循环）。
+
 ## 5. 已知边界（如实写在前面）
 
 1. **墨影是「学风格」，不是「学策略」**：它估计的是五个连续参数（绕远/贴边/贪近/摆幅/行笔），不是逐帧模仿动作。所以它复现的是「你走路的脾气」，不是「你在这一格会怎么点」。

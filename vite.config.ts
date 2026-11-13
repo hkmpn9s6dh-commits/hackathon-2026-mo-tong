@@ -5,6 +5,15 @@ import { defineConfig } from 'vite';
 // served from its own root.
 export default defineConfig({
   base: './',
+  plugins: [
+    {
+      name: 'build-stamp',
+      transformIndexHtml(html) {
+        const stamp = String(Date.now());
+        return html.replace('</head>', `  <meta name="app-version" content="${stamp}" />\n  </head>`);
+      },
+    },
+  ],
   build: {
     target: 'es2022',
     assetsInlineLimit: 0,
