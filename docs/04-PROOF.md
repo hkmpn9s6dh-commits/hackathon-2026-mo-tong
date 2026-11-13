@@ -14,7 +14,7 @@
 | AC-2/5 阻挡与完成判定 | 同上 | 23 passed |
 | AC-6/7 学习模型与墨影 | 同上 | 23 passed |
 | AC-8 构建与相对路径 | `bash scripts/verify.sh` | all checks passed |
-| AC-9/10/11 浏览器全流程、真实鼠标拖动、光标可见、无 console 错误、414px | `node scripts/e2e.mjs` | 12 checks passed |
+| AC-9/10/11 浏览器全流程、真实鼠标拖动、光标可见、无 console 错误、414px | `node scripts/e2e.mjs` | 13 checks passed |
 | AC-12 创空间静态 | `ms_deploy.json` + 根 `index.html` | 见 §4 |
 | AC-13 无密钥 | `verify.sh` 的 `no api keys committed` | PASS |
 
