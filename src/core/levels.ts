@@ -113,10 +113,10 @@ function makeHazards(
 
 export function buildLevel(opts: LevelOptions): Level {
   const rng = makeRng(seedFromString(opts.seed));
-  const start: Vec2 = { x: lerp(BOARD.x0 + 34, 236, rng()), y: lerp(250, 530, rng()) };
+  const start: Vec2 = { x: lerp(BOARD.x0 + 34, 236, rng()), y: lerp(210, 570, rng()) };
   const goal = {
     x: lerp(830, BOARD.x1 - 46, rng()),
-    y: lerp(210, 560, rng()),
+    y: lerp(190, 585, rng()),
     r: GOAL_R,
   };
 

@@ -751,7 +751,7 @@ export class Game {
       drawBrushPath(ctx, shown, { width: 9.4, wet: 0.6, seed: 5 });
       ctx.restore();
       const head = shown[shown.length - 1];
-      if (head) drawInkChild(ctx, head.x, head.y, time, { scale: 1.35, squash: 0.2, facing: 1 });
+      if (head) drawInkChild(ctx, head.x, head.y, time, { scale: 1.75, squash: 0.2, facing: 1 });
     }
     ctx.restore();
 
@@ -781,7 +781,7 @@ export class Game {
     drawInkChild(ctx, pos.x, pos.y, time, {
       facing: this.childFacing,
       squash: this.phase === 'walk' ? 0.4 : this.childSquash * 0.5,
-      scale: 1.4,
+      scale: 1.9,
     });
   }
 
@@ -794,7 +794,7 @@ export class Game {
         alpha: 0.32,
         color: '#2b2520',
         eyeColor: 'rgba(184,55,42,0.75)',
-        scale: 1.05,
+        scale: 1.35,
         facing: -1,
       });
       ctx.restore();
