@@ -39,6 +39,8 @@ fi
 [ -f LICENSE ] && grep -qi "MIT License" LICENSE && ok "MIT licence present" || bad "MIT licence present"
 [ -f README.md ] && grep -q "npm run build" README.md && ok "README has run instructions" || bad "README has run instructions"
 [ -f ms_deploy.json ] && grep -q '"static"' ms_deploy.json && ok "ModelScope static deploy manifest" || bad "ModelScope static deploy manifest"
+[ -f src/fonts/wenkai.css ] && grep -q "LXGW WenKai" src/styles.css && ok "bundled CJK font (no system-font dependency)" || bad "bundled CJK font"
+[ -f video/mo-tong-demo.mp4 ] && ok "demo video present" || bad "demo video present"
 [ -f docs/00-BRIEF.md ] && ok "docs/00-BRIEF.md" || bad "docs/00-BRIEF.md"
 [ -f docs/01-SPEC.md ] && ok "docs/01-SPEC.md" || bad "docs/01-SPEC.md"
 [ -f docs/07-UI.md ] && ok "docs/07-UI.md" || bad "docs/07-UI.md"

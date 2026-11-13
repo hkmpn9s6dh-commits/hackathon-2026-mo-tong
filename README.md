@@ -52,11 +52,13 @@ src/core/     rng · geom · levels · stroke · learn —— 纯逻辑，无 DO
 src/render/   paper（纸与远山）· ink（笔触、朱砂、墨渍、印、墨童）
 src/game.ts   状态机、输入、行走动画、收卷
 src/ui.ts     题跋式 HUD、结算纸片
-scripts/      verify.sh · e2e.mjs · shots.mjs · record.mjs · cover.mjs
+scripts/      verify.sh · e2e.mjs · shots.mjs · record.mjs · score.mjs · make_video.py · build-fonts.mjs
 docs/         00-BRIEF · 01-SPEC · 04-PROOF · 05-SUBMISSION · 06-SUBMIT-STEPS · 07-UI
 ```
 
-技术：TypeScript（strict）+ Vite，零运行时依赖。画面全部 Canvas 2D 程序化绘制；音效全部 WebAudio 合成（`src/audio.ts`），仓库里没有一个音频或图片文件。
+技术：TypeScript（strict）+ Vite，零运行时依赖。画面全部 Canvas 2D 程序化绘制；音效全部 WebAudio 合成（`src/audio.ts`），仓库里没有音频或图片文件。
+
+字体随包带：[霞鹜文楷 LXGW WenKai](https://github.com/lxgw/LxgwWenKai)（SIL OFL 1.1），只取界面实际用到的 unicode-range 子集（`src/fonts/`，用 `scripts/build-fonts.mjs` 生成）。所以 Windows / macOS / Android 上看到的是同一套字，不会掉回系统黑体。
 
 ## 部署
 
