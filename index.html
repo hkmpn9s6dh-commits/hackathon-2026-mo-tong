@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>墨童 · 一个会学你的小妖怪</title>
+    <meta name="description" content="《墨童》是一笔画游戏：你在宣纸上落笔，墨童照着走；走得越多，它越像你。" />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23b8372a'/%3E%3Ctext x='32' y='46' font-size='40' text-anchor='middle' fill='%23f7f2e5' font-family='serif'%3E墨%3C/text%3E%3C/svg%3E" />
+    <script type="module" crossorigin src="./assets/index-DBOiTD0j.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-B5AWfvUw.css">
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="stage" aria-label="墨童的游戏画面"></canvas>
+
+      <div id="hud" class="hud">
+        <header class="hud-top">
+          <div class="level-tag">
+            <span id="level-num" class="level-num">第一关</span>
+            <span id="level-title" class="level-title">入院</span>
+          </div>
+          <div class="ink-meter" title="剩下的墨">
+            <div class="ink-track"><div id="ink-fill" class="ink-fill"></div></div>
+            <span class="ink-caption">墨</span>
+          </div>
+        </header>
+
+        <aside id="habit-panel" class="habit-panel">
+          <h4>墨影学到的</h4>
+          <ul id="habit-list"></ul>
+          <p id="habit-empty" class="habit-empty">它还没学会什么。<br />画完这一关，它开始学你。</p>
+        </aside>
+
+        <footer class="hud-bottom">
+          <p id="hint" class="hint">按住拖动落笔</p>
+          <div class="actions">
+            <button id="btn-auto" class="ghost" type="button">看它画</button>
+            <button id="btn-retry" class="ghost" type="button">重画</button>
+            <button id="btn-mute" class="ghost icon" type="button" aria-label="声音">声</button>
+          </div>
+        </footer>
+      </div>
+
+      <div id="title" class="title-layer"></div>
+      <div id="overlay" class="overlay"></div>
+    </div>
+  </body>
+</html>
