@@ -3,7 +3,7 @@ import { catmullRom, clamp, dist, lerp, type Vec2 } from './core/geom';
 import { blendStyle, extractStyle, loudestTraits, NEUTRAL_STYLE, planShadow, type ShadowPlan, type Style } from './core/learn';
 import { BOARD, BRUSH_R, buildAllLevels, DOT_R, GOAL_R, type Level } from './core/levels';
 import { blockedByHazard, evaluateStroke, scoreLevel } from './core/stroke';
-import { CINNABAR, drawBrushPath, drawInkChild, INK, makeDotSprite, makeHazardSprite, makeSealSprite } from './render/ink';
+import { CINNABAR, drawBrushPath, drawInkChild, makeDotSprite, makeHazardSprite, makeSealSprite } from './render/ink';
 import { makePaperTexture, paperPath } from './render/paper';
 import { UI } from './ui';
 
@@ -165,23 +165,28 @@ export class Game {
     const down = (e: PointerEvent) => {
       if (this.phase !== 'draw') return;
       const p = this.toLogical(e.clientX, e.clientY);
-      if (dist(p, this.level.start) > 64) {
-        this.flash('从墨童身上起笔。');
-        return;
-      }
       this.sound.ensure();
       this.canvas.setPointerCapture(e.pointerId);
       this.drawing = true;
       this.autoMode = false;
+      this.ghost = null;
       this.drawStartedAt = performance.now();
       this.stroke = [{ ...this.level.start }];
       this.lastPoint = { ...this.level.start };
       this.childAt = { ...this.level.start };
       this.blockedFlash = 0;
+      this.pointer = p;
+      // Pressing anywhere is fine: the stroke always begins at the ink child.
+      // The lead-in to the pointer is a real segment, so it obeys the blots too.
+      if (dist(p, this.level.start) > 8) {
+        this.extendStroke(p);
+        if (this.stroke.length === 1) this.flash('起笔被墨渍挡住了，换个方向按下去。');
+      }
     };
     const move = (e: PointerEvent) => {
-      if (!this.drawing) return;
       const p = this.toLogical(e.clientX, e.clientY);
+      this.pointer = p;
+      if (!this.drawing) return;
       this.extendStroke(p);
     };
     const up = () => {
@@ -194,7 +199,12 @@ export class Game {
     this.canvas.addEventListener('pointermove', move);
     this.canvas.addEventListener('pointerup', up);
     this.canvas.addEventListener('pointercancel', up);
-    this.canvas.addEventListener('pointerleave', up);
+    this.canvas.addEventListener('pointerleave', (e) => {
+      this.pointer = null;
+      if (!this.drawing) return;
+      // keep drawing when the pointer leaves with capture; only end on a real leave
+      if (!(e.buttons & 1)) up();
+    });
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
   }
 
@@ -246,6 +256,7 @@ export class Game {
       else if (!result.reachedGoal) this.flash('收笔要落在印上。');
       else if (missing > 0) this.flash(`还差 ${missing} 颗朱砂。`);
       else this.flash('再试一笔。');
+      this.ghost = { points: this.stroke.slice(), alpha: 0.55 };
       this.stroke = [];
       this.lastPoint = null;
       this.childAt = { ...this.level.start };
@@ -362,6 +373,11 @@ export class Game {
 
   private update(dt: number): void {
     if (this.blockedFlash > 0) this.blockedFlash = Math.max(0, this.blockedFlash - dt);
+    if (this.ghost) {
+      this.ghost.alpha -= dt * 1.15;
+      if (this.ghost.alpha <= 0) this.ghost = null;
+    }
+    if (this.toast && performance.now() > this.toast.until) this.toast = null;
     if (this.phase === 'title') this.titleT += dt;
     this.updateParticles(dt);
 
@@ -672,6 +688,14 @@ export class Game {
       ctx.restore();
     }
 
+    // the stroke you just gave up on, fading out so you can see what happened
+    if (this.ghost && this.ghost.points.length > 1) {
+      ctx.save();
+      ctx.globalAlpha = Math.max(0, this.ghost.alpha);
+      drawBrushPath(ctx, this.ghost.points, { color: '#6b5c4b', width: 8.6, alpha: 0.5, wet: 0.4, seed: 9 });
+      ctx.restore();
+    }
+
     // current stroke
     if (this.stroke.length > 1) {
       ctx.save();
@@ -696,6 +720,7 @@ export class Game {
     this.drawShadowChild(ctx, time);
     this.drawChild(ctx, time);
     this.drawParticles(ctx);
+    this.syncCursor();
 
     if (this.blockedFlash > 0) {
       ctx.save();
@@ -706,8 +731,9 @@ export class Game {
     }
     ctx.restore();
 
-    // cursor: a small brush dot while drawing
+    // cursor: a brush ring at the pointer while drawing
     if (this.phase === 'draw') this.drawCursor(ctx);
+    this.drawToast(ctx);
   }
 
   /** The title screen is the game itself, idling: a stroke drawn, a walk, a reset. */
@@ -815,28 +841,56 @@ export class Game {
   }
 
   private drawCursor(ctx: CanvasRenderingContext2D): void {
-    const mouse = this.pointer;
-    if (!mouse) return;
+    const at = this.pointer;
+    const s = this.scale || 1;
+    if (!at) return;
+    // the ring is a hairline in screen pixels, so it stays crisp at any zoom
     ctx.save();
-    ctx.globalAlpha = this.drawing ? 0.55 : 0.3;
-    ctx.strokeStyle = INK;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1 / s;
+    ctx.strokeStyle = this.drawing ? 'rgba(23,19,15,0.55)' : 'rgba(23,19,15,0.34)';
     ctx.beginPath();
-    ctx.arc(mouse.x, mouse.y, this.drawing ? 3 : 7, 0, Math.PI * 2);
+    ctx.arc(at.x, at.y, (this.drawing ? 4 : 9) / s, 0, Math.PI * 2);
     ctx.stroke();
+    if (!this.drawing) {
+      ctx.fillStyle = 'rgba(23,19,15,0.55)';
+      ctx.beginPath();
+      ctx.arc(at.x, at.y, 1.6 / s, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  private drawToast(ctx: CanvasRenderingContext2D): void {
+    if (!this.toast) return;
+    const left = this.toast.until - performance.now();
+    const a = clamp(left / 420, 0, 1);
+    ctx.save();
+    ctx.globalAlpha = a * 0.92;
+    ctx.font = '23px "KaiTi","STKaiti",serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(23,19,15,0.9)';
+    ctx.fillText(this.toast.text, LOGICAL_W / 2 - 50, 74);
     ctx.restore();
   }
 
   private pointer: Vec2 | null = null;
-
-  setPointer(p: Vec2 | null): void {
-    this.pointer = p;
-  }
+  private ghost: { points: Vec2[]; alpha: number } | null = null;
+  private toast: { text: string; until: number } | null = null;
+  private cursorKind = '';
 
   private flash(msg: string): void {
     this.hintFlash = msg;
     this.hintUntil = performance.now() + 2200;
+    this.toast = { text: msg, until: performance.now() + 1900 };
     this.ui.flashHint(msg);
+  }
+
+  /** the mouse must always be visible: crosshair where a brush is expected */
+  private syncCursor(): void {
+    const kind = this.phase === 'draw' ? 'crosshair' : 'default';
+    if (kind === this.cursorKind) return;
+    this.cursorKind = kind;
+    this.canvas.style.cursor = kind;
   }
 
   get transientHint(): string {

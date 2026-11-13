@@ -14,7 +14,7 @@
 | AC-2/5 阻挡与完成判定 | 同上 | 23 passed |
 | AC-6/7 学习模型与墨影 | 同上 | 23 passed |
 | AC-8 构建与相对路径 | `bash scripts/verify.sh` | all checks passed |
-| AC-9/10/11 浏览器全流程、无 console 错误、414px | `node scripts/e2e.mjs` | 10 checks passed |
+| AC-9/10/11 浏览器全流程、真实鼠标拖动、光标可见、无 console 错误、414px | `node scripts/e2e.mjs` | 12 checks passed |
 | AC-12 创空间静态 | `ms_deploy.json` + 根 `index.html` | 见 §4 |
 | AC-13 无密钥 | `verify.sh` 的 `no api keys committed` | PASS |
 
@@ -30,8 +30,11 @@
 
 ```
 PASS  title screen
+PASS  system cursor is never hidden
 PASS  starts on level 1 in draw phase
-PASS  level 1 completes
+PASS  brush cursor in the play phase
+PASS  a press far from the child still draws ink
+PASS  tracing the route with a real mouse completes level 1
 PASS  shadow takes at least one dot before the player draws
 PASS  shadow never takes more than 40 % of the dots
 PASS  shadow level still solvable with the reference route
@@ -58,6 +61,11 @@ PASS  no console errors
 - 创空间：**待用户部署**（步骤见 `06-SUBMIT-STEPS.md`）。静态托管要求根目录 `index.html` + `assets/`，本仓库 `ms_deploy.json` 已按 `sdk_type: static` 写好。
 - 线上实测：对 Pages 地址跑 `BASE_URL=https://hkmpn9s6dh-commits.github.io/hackathon-2026-mo-tong/ node scripts/e2e.mjs`，10 项全过（2026-11-13）。
 - 创空间部署后的冒烟：把 `BASE_URL` 指到创空间地址，同一套 10 项应全过。
+
+## 4.5 用户报的两个 bug（2026-11-13 已修，已加回归）
+
+1. **首页鼠标几乎看不见**：`#stage { cursor: none }` 把系统指针整屏藏了，只有按钮上能偶然露出原生指针。改为：`default` / 落笔时 `crosshair`，画布内的笔尖圆环改成按逻辑坐标绘制（原来用的是 CSS 像素，位置是错的）。回归：`system cursor is never hidden`、`brush cursor in the play phase`。
+2. **第一关怎么拖都拖不动**：起笔点必须在墨童 64px 内，否则**一点墨都不出**；即使起笔成功，一笔不完整就静默清空。改为：**纸上任意位置按下都从墨童起笔**（连向指针的那一段照旧受墨渍阻挡），被挡时给明确提示；放弃的笔画以淡墨淡出而不是瞬间消失；失败原因用画布顶部的大字提示（原来是 16px 小字，容易被忽略）。回归：`a press far from the child still draws ink`、`tracing the route with a real mouse completes level 1`。
 
 ## 5. 已知边界（如实写在前面）
 

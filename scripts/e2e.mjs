@@ -55,17 +55,56 @@ await page.waitForTimeout(1400);
 await page.screenshot({ path: `${OUT}/01-title.png` });
 check('title screen', (await page.locator('.t-title').innerText()) === '墨童');
 
+check(
+  'system cursor is never hidden',
+  (await page.evaluate(() => getComputedStyle(document.getElementById('stage')).cursor)) !== 'none',
+);
+
 await page.click('[data-act="start"]');
 await page.waitForTimeout(700);
 let snap = await page.evaluate(() => window.__moTong.snapshot());
 check('starts on level 1 in draw phase', snap.phase === 'draw' && snap.level === 0, JSON.stringify(snap));
+check(
+  'brush cursor in the play phase',
+  (await page.evaluate(() => getComputedStyle(document.getElementById('stage')).cursor)) === 'crosshair',
+);
 
-// play level 1 with the reference route, watch it walk
-await page.evaluate(() => window.__moTong.solve());
-await page.waitForTimeout(900);
+// A real mouse, pressed far away from the ink child, must still draw ink.
+// (This is the bug the user hit: pressing anywhere but the child did nothing.)
+const geo = await page.evaluate(() => {
+  const g = window.__moTong.game;
+  return { s: g.scale, ox: g.offsetX, oy: g.offsetY, start: g.level.start, sol: g.level.solution };
+});
+const toCss = (lx, ly) => [geo.ox + lx * geo.s, geo.oy + ly * geo.s];
+const [fx, fy] = toCss(geo.start.x + 320, geo.start.y - 120);
+await page.mouse.move(fx, fy);
+await page.mouse.down();
+for (let i = 1; i <= 16; i++) {
+  await page.mouse.move(fx + i * 9, fy + i * 4);
+  await page.waitForTimeout(12);
+}
+snap = await page.evaluate(() => window.__moTong.snapshot());
+check('a press far from the child still draws ink', snap.strokeLen > 40, JSON.stringify(snap));
+await page.screenshot({ path: `${OUT}/02a-far-press.png` });
+await page.mouse.up();
+await page.waitForTimeout(400);
+
+// Give up on that stroke, then trace the reference route with the real mouse.
+await page.click('#btn-retry');
+await page.waitForTimeout(500);
+const pts = geo.sol.filter((_, i) => i % 3 === 0);
+const [sx, sy] = toCss(pts[0].x, pts[0].y);
+await page.mouse.move(sx, sy);
+await page.mouse.down();
+for (const q of pts.slice(1)) {
+  const [x, y] = toCss(q.x, q.y);
+  await page.mouse.move(x, y);
+  await page.waitForTimeout(5);
+}
 await page.screenshot({ path: `${OUT}/02-drawing.png` });
+await page.mouse.up();
 snap = await waitForPhase('result');
-check('level 1 completes', snap.phase === 'result' && snap.finished === 1, JSON.stringify(snap));
+check('tracing the route with a real mouse completes level 1', snap.phase === 'result' && snap.finished === 1, JSON.stringify(snap));
 await page.screenshot({ path: `${OUT}/03-result.png` });
 
 // the shadow level: it must claim at least one dot on its own
