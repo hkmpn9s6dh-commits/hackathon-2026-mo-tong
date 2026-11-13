@@ -58,7 +58,7 @@ if [ $FAST -eq 0 ]; then
     sleep 0.25
   done
   if BASE_URL=http://127.0.0.1:4178/ node scripts/e2e.mjs >/tmp/mo-tong-e2e.log 2>&1; then
-    ok "browser end-to-end (9 checks)"
+    ok "browser end-to-end (10 checks)"
   else
     bad "browser end-to-end"; tail -16 /tmp/mo-tong-e2e.log
   fi
