@@ -7,3 +7,5 @@ proof/rank/*/tmp/
 video/raw.webm
 video/tmp/
 video/frames/
+video/score.wav
+video/spectrum.png
